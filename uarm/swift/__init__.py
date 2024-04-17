@@ -488,7 +488,8 @@ class Swift(Pump, Keys, Gripper, Grove):
             return self.ret.get()
 
     @catch_exception
-    def send_cmd_async(self, msg=None, timeout=None, callback=None, debug=True, enable_callback_thread=True):
+    def send_cmd_async(self, msg=None, timeout=None, callback=None, debug=True,
+                       enable_callback_thread=True):
         if not isinstance(msg, str) or not msg:
             return
         if timeout is None:
@@ -514,6 +515,8 @@ class Swift(Pump, Keys, Gripper, Grove):
             # })
             cmd.start()
             self.serial.write('#{cnt} {msg}'.format(cnt=self._cnt, msg=msg))
+            if debug:
+                print('Async #{cnt} {msg}'.format(cnt=self._cnt, msg=msg))
             self._cnt += 1
             if self._cnt == 10000:
                 self._cnt = 1
@@ -527,6 +530,8 @@ class Swift(Pump, Keys, Gripper, Grove):
             timeout = timeout if isinstance(timeout, (int, float)) else self.cmd_timeout
             self._other_que.queue.clear()
             self.serial.write(msg)
+            if debug:
+                print(f'Sync {msg}')
             return self._other_que.get(timeout)
         else:
             cmd = self.send_cmd_async(msg=msg, timeout=timeout, debug=debug)
@@ -665,7 +670,8 @@ class Swift(Pump, Keys, Gripper, Grove):
             self.send_cmd_async(cmd, timeout=timeout, callback=functools.partial(_handle, _callback=callback))
 
     @catch_exception
-    def set_position(self, x=None, y=None, z=None, speed=None, relative=False, wait=False, timeout=10, callback=None, cmd='G0'):
+    def set_position(self, x=None, y=None, z=None, speed=None, relative=False,
+                     wait=False, timeout=10, callback=None, cmd='G0'):
         def _handle(_ret, _callback=None):
             _ret = _ret[0] if _ret != protocol.TIMEOUT else _ret
             if callable(_callback):
@@ -711,6 +717,7 @@ class Swift(Pump, Keys, Gripper, Grove):
         if timeout is None:
             timeout = 10
         if wait:
+            # Should not be needed, but consider adding no_cnt=True,
             ret = self.send_cmd_sync(cmd, timeout=timeout)
             return _handle(ret)
         else:
