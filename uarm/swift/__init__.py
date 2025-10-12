@@ -164,9 +164,11 @@ class Swift(Pump, Keys, Gripper, Grove):
 
     if asyncio:
         @staticmethod
-        @asyncio.coroutine
-        def _async_run_callback(callback, msg):
-            yield from callback(msg)
+        # @asyncio.coroutine
+        async def _async_run_callback(callback, msg):
+            # yield from callback(msg)
+            # https://stackoverflow.com/questions/68505720/yield-from-alternative-for-async-def-function
+            await callback(msg)
 
         # @staticmethod
         # async def _async_run_callback(callback, msg):
@@ -498,7 +500,7 @@ class Swift(Pump, Keys, Gripper, Grove):
                 timeout = int(tmps[0])
                 msg = tmps[1]
         if self._speed_factor != 1:
-            relink2 = 'F\-?\d+\.?\d*'
+            relink2 = r'F\-?\d+\.?\d*'
             data = re.findall(relink2, msg)
             if len(data):
                 speed = float(data[0][1:])
